@@ -161,6 +161,38 @@ whisperx-server/
 └── .gitignore
 ```
 
+### Tuning: VAD and ASR parameters
+
+These are set in `whisperx_server.py` inside `whisperx.load_model(...)`.
+
+#### VAD (Voice Activity Detection) — `vad_options`
+
+Controls which parts of audio are considered speech before sending to Whisper.
+
+| Parameter | Default | Current | Effect |
+|-----------|---------|---------|--------|
+| `vad_onset` | 0.500 | 0.3 | Probability threshold to **start** a speech segment. Lower = detects quieter speech, fewer missed fragments |
+| `vad_offset` | 0.363 | 0.2 | Probability threshold to **end** a speech segment. Lower = segments end later, less clipping |
+
+If parts of the conversation are still missing — lower these values further (e.g. `0.2` / `0.1`).
+If too much noise/silence is transcribed — raise them back toward defaults.
+
+#### ASR (Speech Recognition) — `asr_options`
+
+Controls how Whisper decides whether to keep or discard a transcribed segment.
+
+| Parameter | Default | Current | Effect |
+|-----------|---------|---------|--------|
+| `no_speech_threshold` | 0.6 | 0.3 | If Whisper's confidence that a segment is silence exceeds this, the segment is **dropped**. Lower = fewer segments discarded as silence |
+| `compression_ratio_threshold` | 2.4 | 3.0 | Segments with high text repetition above this ratio are discarded as hallucinations. Higher = more permissive, fewer false drops |
+
+```python
+model = whisperx.load_model("medium", device, compute_type=compute_type,
+                            vad_options={"vad_onset": 0.3, "vad_offset": 0.2},
+                            asr_options={"no_speech_threshold": 0.3,
+                                         "compression_ratio_threshold": 3.0})
+```
+
 ### Troubleshooting
 
 **CUDA not available:**
@@ -176,6 +208,10 @@ whisperx-server/
 
 **Model download issues:**
 - Check internet connection or use a local model path
+
+**Parts of conversation missing from transcription:**
+- Lower `vad_onset` / `vad_offset` in `vad_options`
+- Lower `no_speech_threshold` in `asr_options`
 
 ### License
 
@@ -323,6 +359,38 @@ whisperx-server/
 └── .gitignore
 ```
 
+### Настройка: VAD и ASR параметры
+
+Задаются в `whisperx_server.py` внутри вызова `whisperx.load_model(...)`.
+
+#### VAD (определение голосовой активности) — `vad_options`
+
+Управляет тем, какие части аудио считаются речью перед передачей в Whisper.
+
+| Параметр | По умолчанию | Текущее | Эффект |
+|----------|-------------|---------|--------|
+| `vad_onset` | 0.500 | 0.3 | Порог вероятности для **начала** речевого сегмента. Ниже = детектирует тихую речь, меньше пропусков |
+| `vad_offset` | 0.363 | 0.2 | Порог вероятности для **окончания** речевого сегмента. Ниже = сегменты заканчиваются позже, меньше обрывов |
+
+Если части разговора всё ещё выпадают — снизьте значения (например `0.2` / `0.1`).
+Если в транскрипцию попадает много шума/тишины — верните ближе к значениям по умолчанию.
+
+#### ASR (распознавание речи) — `asr_options`
+
+Управляет тем, как Whisper решает оставить или отбросить транскрибированный сегмент.
+
+| Параметр | По умолчанию | Текущее | Эффект |
+|----------|-------------|---------|--------|
+| `no_speech_threshold` | 0.6 | 0.3 | Если уверенность модели в том, что сегмент — тишина, превышает это значение, сегмент **отбрасывается**. Ниже = меньше сегментов отбрасывается как тишина |
+| `compression_ratio_threshold` | 2.4 | 3.0 | Сегменты с высоким повторением текста выше этого порога отбрасываются как галлюцинации. Выше = мягче, меньше ложных отбросов |
+
+```python
+model = whisperx.load_model("medium", device, compute_type=compute_type,
+                            vad_options={"vad_onset": 0.3, "vad_offset": 0.2},
+                            asr_options={"no_speech_threshold": 0.3,
+                                         "compression_ratio_threshold": 3.0})
+```
+
 ### Решение проблем
 
 **CUDA недоступна:**
@@ -338,6 +406,10 @@ whisperx-server/
 
 **Проблемы с загрузкой модели:**
 - Проверьте интернет или используйте локальный путь к модели
+
+**Части разговора выпадают из транскрипции:**
+- Снизьте `vad_onset` / `vad_offset` в `vad_options`
+- Снизьте `no_speech_threshold` в `asr_options`
 
 ### Лицензия
 

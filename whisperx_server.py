@@ -65,7 +65,10 @@ print("Загрузка модели WhisperX...")
 
 try:
     ## model_path = "C:/Users/kpaha/.cache/huggingface/hub/models--Systran--faster-whisper-medium/snapshots/08e178d48790749d25932bbc082711ddcfdfbc4f"
-    model = whisperx.load_model("medium", device, compute_type=compute_type)
+    model = whisperx.load_model("medium", device, compute_type=compute_type,
+                                vad_options={"vad_onset": 0.3, "vad_offset": 0.2},
+                                asr_options={"no_speech_threshold": 0.3,
+                                             "compression_ratio_threshold": 3.0})
     print("✓ Модель загружена успешно!")
 except Exception as e:
     print(f"✗ Ошибка загрузки модели: {e}")
@@ -76,7 +79,7 @@ diarize_model = None
 if diarize_enabled:
     try:
         print("Загрузка модели диаризации...")
-        diarize_model = whisperx.DiarizationPipeline(
+        diarize_model = whisperx.diarize.DiarizationPipeline(
             use_auth_token=HUGGINGFACE_TOKEN, device=device)
         print("✓ Модель диаризации загружена!")
     except Exception as e:
@@ -210,7 +213,7 @@ def process_task(job):
             try:
                 print(f"[{task_id[:8]}] Диаризация...")
                 diarize_segments = diarize_model(audio)
-                result_diarized = whisperx.assign_word_speakers(
+                result_diarized = whisperx.diarize.assign_word_speakers(
                     diarize_segments, {"segments": segments})
                 segments = result_diarized["segments"]
                 speakers_present = any(seg.get("speaker") for seg in segments)
